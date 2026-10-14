@@ -75,7 +75,9 @@ COPY --chown=appuser:appuser . .
 COPY --from=frontend-builder --chown=appuser:appuser /app/ui/static/dist ./ui/static/dist
 
 # Alembic runs before uvicorn (see docker-entrypoint.sh) so `docker compose up` needs no separate migrate step.
-RUN chmod +x /app/docker-entrypoint.sh
+# Strip CRLF in case the repo was cloned on Windows with core.autocrlf=true
+# (a CRLF shebang fails with "exec /app/docker-entrypoint.sh: no such file or directory").
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
 
 # Switch to non-root user
 USER appuser
