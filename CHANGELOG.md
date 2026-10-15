@@ -31,12 +31,17 @@ Profile setup adds **work authorization** (radio), **visa sponsorship** (checkbo
 
 ### Added
 
+#### Find Jobs
+
+New **Dashboard → Find Jobs** page (`/dashboard/jobs`). Saved free-text searches + a watch list of company careers boards (public JSON listings: `utils/job_sources.py`, platforms `greenhouse` / `lever` / `ashby`) are matched deterministically (`utils/job_matching.py`: role words in title, topic words in title/description, `remote` / `contract` / `jobs <city>` filters). Optional grounded AI web search per saved search with the user's BYOK provider (`agents/job_web_search.py`; not Ollama). Background run with per-user Redis lock and summary on `job_finder_configs.last_run` (`utils/job_finder.py`); leads upserted into `job_leads` (unique per user + source + id; status `new` / `saved` / `dismissed` / `analyzed`). API `/api/v1/job-finder` (`GET`, `PUT /config`, `POST /run` 12/hour, `GET /leads`, `GET`/`PATCH /leads/{id}`). **Analyze** posts the lead's full description to `POST /workflow/start`. Migration **`20261015_029`**. Ships with starter searches and AI-company watch list. Tests: `tests/test_utils/test_job_sources.py`, `test_job_matching.py`, `test_job_finder.py`, `tests/test_agents/test_job_web_search.py`, `tests/test_api/test_job_finder.py`. Rules: `job-finder-feature.mdc`.
+
 #### OpenRouter provider (Settings → AI Setup)
 
 Fifth BYOK provider **`openrouter`** — one OpenRouter key (`sk-or-…`) reaches many model vendors. Adapter **`utils/llm/providers/openrouter.py`** (OpenAI-compatible Chat Completions + streaming; `web` plugin for company-research / outreach grounding). Encrypted key column **`users.openrouter_api_key_encrypted`** (migration **`20261014_028`**). Key format check + `/key` validation (**`utils/openrouter_api_key_format.py`**); pasting an OpenRouter key under OpenAI now returns a pointer to the right provider. Model picker shows a curated list plus a **Use model** field that accepts any `vendor/model` slug from openrouter.ai/models. Friendly message for OpenRouter 402 (credits) / 429. CLI: `rolemule profile api-key set --provider openrouter`. Tests: **`tests/test_utils/test_llm_openrouter.py`**, **`tests/test_api/test_profile_openrouter.py`**.
 
 ### Fixed
 
+- **Cover letter crash on unstated fields** — `'NoneType' object has no attribute 'lower'` failed the whole analysis when a posting didn't state its industry / company / title; tone detection now coalesces `None`.
 - **Docker on Windows** — `docker-entrypoint.sh` is normalized to LF in the image build and pinned via `.gitattributes`, fixing `exec /app/docker-entrypoint.sh: no such file or directory` on clones with `core.autocrlf=true`.
 
 ### Changed

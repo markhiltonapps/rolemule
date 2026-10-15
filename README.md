@@ -70,6 +70,10 @@ Four more agents run **on demand** from the application detail page (after the w
 | **Mock Session** | Timed conversational mock session (HR / Pro / Manager; 10/15/20 min) with browser voice or typed answers and a scored debrief — see [USER_GUIDE.md](USER_GUIDE.md#mock-session) |
 | **Hiring Outreach** | Public web contact suggestions and copy-ready outreach drafts on the Outreach tab (you send them yourself — no send integration) — see [USER_GUIDE.md](USER_GUIDE.md#hiring-outreach) |
 
+## Find Jobs
+
+**Dashboard → Find Jobs** keeps a list of saved searches (e.g. `solutions engineer voice AI remote`, `AI solutions architect jobs Houston`) and a watch list of company careers pages. **Search now** reads those public careers pages for free and keeps the roles that match a search; optionally your AI provider also searches the whole web once per saved search (uses your AI key). One click on **Analyze** sends a result into the normal five-agent pipeline. See [USER_GUIDE.md](USER_GUIDE.md#find-jobs).
+
 ## Six career tools
 
 Standalone tools you can use any time — no job application needed:

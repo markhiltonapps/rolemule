@@ -778,6 +778,121 @@ class JobApplication(Base):
         }
 
 
+class JobFinderConfig(Base):
+    """
+    Per-user Find Jobs settings: saved searches, watched company careers boards,
+    and a summary of the most recent search run.
+
+    JSONB columns (``searches``, ``companies``, ``last_run``) need
+    ``flag_modified()`` on every write.
+    """
+
+    __tablename__ = "job_finder_configs"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    # List[str] — free-text searches, e.g. "AI solutions architect remote"
+    searches: Mapped[List[str]] = mapped_column(JSONB, nullable=False, default=list)
+    # List[{"platform": str, "token": str, "name": str}]
+    companies: Mapped[List[Dict[str, Any]]] = mapped_column(
+        JSONB, nullable=False, default=list
+    )
+    # Summary of the last run (timestamps, counts, per-company status, errors)
+    last_run: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for API responses."""
+        return {
+            "searches": list(self.searches or []),
+            "companies": list(self.companies or []),
+            "last_run": self.last_run,
+        }
+
+
+class JobLead(Base):
+    """
+    A job posting found by Find Jobs that matched one of the user's searches.
+
+    ``status``: new | saved | dismissed | analyzed. Rows are unique per
+    (user, source, external_id) so re-running a search never duplicates leads.
+    """
+
+    __tablename__ = "job_leads"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "source", "external_id", name="uq_job_leads_user_source_external"
+        ),
+        Index("ix_job_leads_user_status_seen", "user_id", "status", "first_seen_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    # greenhouse | lever | ashby (company careers boards) | web (AI web search)
+    source: Mapped[str] = mapped_column(String(16), nullable=False)
+    external_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    company: Mapped[str] = mapped_column(String(200), nullable=False)
+    location: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
+    is_remote: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+    # Full plain-text posting when the source provides it (used for Analyze)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    posted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # List[str] — which saved searches matched this posting
+    matched_searches: Mapped[List[str]] = mapped_column(
+        JSONB, nullable=False, default=list
+    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="new")
+    first_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    def to_dict(self, include_description: bool = False) -> Dict[str, Any]:
+        """Convert to dictionary for API responses."""
+        data: Dict[str, Any] = {
+            "id": str(self.id),
+            "source": self.source,
+            "title": self.title,
+            "company": self.company,
+            "location": self.location,
+            "is_remote": self.is_remote,
+            "url": self.url,
+            "has_description": bool(self.description),
+            "posted_at": self.posted_at.isoformat() if self.posted_at else None,
+            "matched_searches": list(self.matched_searches or []),
+            "status": self.status,
+            "first_seen_at": (
+                self.first_seen_at.isoformat() if self.first_seen_at else None
+            ),
+        }
+        if include_description:
+            data["description"] = self.description
+        return data
+
+
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================

@@ -8,6 +8,7 @@ Welcome to RoleMule! This guide walks you through every feature so you can get t
 - [Profile Setup](#profile-setup)
 - [Dashboard Overview](#dashboard-overview)
 - [Creating Applications](#creating-applications)
+- [Find Jobs](#find-jobs)
 - [Chrome Extension](#chrome-extension)
 - [Interview Preparation](#interview-preparation)
 - [Mock Session](#practice-interview)
@@ -239,6 +240,32 @@ The **Cover Letter** tab has a **Copy** button. The Cover Letter, Resume, and In
 **Deletion** — click the trash icon on the right side of any card's bottom row. A confirmation dialog appears before anything is deleted.
 
 ---
+
+## Find Jobs
+
+**Dashboard → Find Jobs** looks for new openings that match your saved searches, so you don't have to check every site yourself.
+
+### Where jobs come from
+
+1. **Companies you watch** — RoleMule reads the public careers page of each company on your watch list and keeps the roles that match one of your searches. This is free and runs automatically when you open the page (at most every 12 hours), or whenever you click **Search now**.
+2. **AI web search (optional)** — tick **Also search the whole web with AI** before clicking **Search now**. Your AI provider searches the web once per saved search (with OpenRouter, Gemini, OpenAI, or Anthropic — not Ollama). This costs a little on your AI account, usually a few cents per search. Results are labeled *AI web search — double-check details*.
+
+### Your searches
+
+Open **Searches & companies to watch** and enter one search per line, for example `solutions engineer voice AI remote`:
+
+- Role words (*solutions engineer*) must appear in the job title; topic words (*AI*, *voice*, *generative*) can be in the title or description.
+- **remote** keeps only remote roles; **contract** keeps only contract / freelance roles.
+- Put a city after **jobs** for local roles: `AI solutions architect jobs Houston`.
+
+### Companies to watch
+
+One careers page link per line — the page that lists all of a company's open roles — optionally with a name first: `Acme | link`. Not every careers page type is supported; when you click **Save**, RoleMule tells you which links it can't read. After each search, the list under the box shows which companies loaded and how many roles each has open.
+
+### Working with results
+
+- **Analyze** — runs the full RoleMule analysis (fit score, company research, resume tips, cover letter) and adds the job to your dashboard. For AI web search results RoleMule doesn't have the full description, so **Analyze** opens the posting — use the extension's **Analyze This Job** there, or paste the description into **New Application**.
+- **Save**, **Not interested**, and the **New / Saved / Analyzed / Dismissed** tabs keep your list tidy. Jobs that disappear from a careers page drop out of **New** after about three weeks.
 
 ## Chrome Extension
 

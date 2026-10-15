@@ -35,6 +35,7 @@ from api.workflow import router as workflow_router, _safe_error_msg
 from api.websocket import router as websocket_router
 from api.interview_prep import router as interview_prep_router
 from api.hiring_outreach import router as hiring_outreach_router
+from api.job_finder import router as job_finder_router
 from api.cv_optimizer import router as cv_optimizer_router
 from api.mock_interview import router as mock_interview_router
 from api.tools import router as tools_router
@@ -648,6 +649,9 @@ def include_routers(app: FastAPI):
         tools_router, prefix=f"{API_V1_PREFIX}/tools", tags=["Career Tools"]
     )
     app.include_router(
+        job_finder_router, prefix=f"{API_V1_PREFIX}/job-finder", tags=["Find Jobs"]
+    )
+    app.include_router(
         extension_autofill_router,
         prefix=f"{API_V1_PREFIX}/extension",
         tags=["Extension"],
@@ -972,6 +976,31 @@ def add_custom_routes(app: FastAPI):
             logger.error('Error serving verify email page: %s', sanitize_log_value(e), exc_info=True)
             return HTMLResponse(
                 content="<h1>Verify Email</h1><p>Service temporarily unavailable</p>",
+                status_code=503,
+            )
+
+    # Find Jobs page
+    @app.get("/dashboard/jobs", response_class=HTMLResponse)
+    async def find_jobs_page(request: Request):
+        """Serve the Find Jobs page."""
+        if templates is None:
+            return HTMLResponse(
+                content="<h1>Find Jobs</h1><p>Service initializing...</p>",
+                status_code=503,
+            )
+
+        try:
+            return _template_response(request,
+                "dashboard/jobs.html",
+                {
+                    "request": request,
+                    "app_name": settings.app_name,
+                },
+            )
+        except Exception as e:
+            logger.error('Error serving Find Jobs page: %s', sanitize_log_value(e), exc_info=True)
+            return HTMLResponse(
+                content="<h1>Find Jobs</h1><p>Service temporarily unavailable</p>",
                 status_code=503,
             )
 

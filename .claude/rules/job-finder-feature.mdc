@@ -1,0 +1,45 @@
+---
+description: Find Jobs — saved searches, watched careers boards, AI web search, job_leads, /api/v1/job-finder
+globs: api/job_finder.py,utils/job_finder.py,utils/job_sources.py,utils/job_matching.py,agents/job_web_search.py,ui/dashboard/jobs.html,ui/src/pages/dashboard-jobs.ts
+alwaysApply: false
+---
+
+# Find Jobs
+
+Page **`/dashboard/jobs`** (`ui/dashboard/jobs.html` + `ui/src/pages/dashboard-jobs.ts`, Vite entry `js/dashboard-jobs.js`). Dashboard action button links to it.
+
+## Data
+
+| Table | Notes |
+|-------|-------|
+| `job_finder_configs` | One row per user. JSONB `searches` (list[str]), `companies` (list[{platform, token, name}]), `last_run` (summary). **`flag_modified()` on every write.** Created lazily by `get_or_create_config()` (savepoint upsert) with `DEFAULT_SEARCHES` / `DEFAULT_COMPANIES`. |
+| `job_leads` | Unique `(user_id, source, external_id)` (`uq_job_leads_user_source_external`). `status`: `new` \| `saved` \| `dismissed` \| `analyzed`. `description` = full plain text (boards only; `NULL` for web results). |
+
+Migration **`20261015_029`**. Both tables `ON DELETE CASCADE` from `users`.
+
+## Sources
+
+- **Careers boards** (`utils/job_sources.py`): public JSON listings for platforms `greenhouse`, `lever`, `ashby`. `parse_board_reference()` turns a careers-page link (or `platform:token`) into `(platform, token)`; only the token comes from users (regex-validated) and requests go to fixed API hosts — **no SSRF surface; keep it that way** (never fetch arbitrary user/LLM URLs server-side).
+- **AI web search** (`agents/job_web_search.py`): one grounded `generate(..., use_google_search_grounding=True)` per saved search with the user's BYOK provider/model. Skipped for Ollama. Only http(s) URLs kept; results are never fetched server-side. `external_id` = SHA-256 of the URL.
+
+## Matching (`utils/job_matching.py`)
+
+`parse_search()` → role words (must be in title, light plural folding, `pre-sales`→`presales`), topic words (`ai`, `voice`, `generative`, … — title or first 20k chars of description), `remote`, `contract`, and location = words after `jobs` / `in` (2-letter US state codes also match full state names). Web results are attached to the search that produced them without re-matching.
+
+## Runs (`utils/job_finder.py`)
+
+`POST /run` claims Redis lock `job_finder:running:{user_id}` (15 min TTL), then `run_job_finder_background()` (uses `get_session()`, `report_exception`, always releases the lock). Summary on `last_run`: `status`, `new_leads`, `board_matches`, `web_matches`, `web_errors`, `companies_failed`, `company_status{platform:token → {ok, jobs, error}}`. The page polls `GET /job-finder` every 3 s while `running`, and auto-starts a boards-only run when the last run is >12 h old.
+
+## API (`/api/v1/job-finder`)
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `` | config + `running` |
+| PUT | `/config` | `{searches: [str], companies: [link or "Name \| link"]}`; ≤30 searches (150 chars), ≤60 companies; unsupported links → `VAL_*` listing them |
+| POST | `/run` | `{include_web}`; 12/hour; web requires LLM context (`CFG_6001`); 409 `RES_3003` when already running |
+| GET | `/leads?status=` | `new` hides leads not seen for `STALE_LEAD_DAYS` (21); returns `counts` |
+| GET / PATCH | `/leads/{id}` | detail includes `description`; PATCH `{status}` |
+
+**Analyze** (frontend) posts `job_text` (title/company/location + description), `detected_title`, `detected_company`, `job_url` to `POST /workflow/start`, handles `CFG_6001` / `RES_3002`, then marks the lead `analyzed`. Web leads (no description) open the posting instead.
+
+User-facing copy must not name job sites or careers-board vendors (non-negotiable #22) — say "company careers page".

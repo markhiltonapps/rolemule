@@ -23,5 +23,6 @@
   "js/profile-setup.js": "src/pages/profile-setup.ts",
   "js/dom-security.js": "src/pages/dom-security.ts",
   "js/confirm-modal.js": "src/pages/confirm-modal.ts",
-  "js/event-bus.js": "src/pages/event-bus.ts"
+  "js/event-bus.js": "src/pages/event-bus.ts",
+  "js/dashboard-jobs.js": "src/pages/dashboard-jobs.ts"
 }
