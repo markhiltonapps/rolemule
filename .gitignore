@@ -110,3 +110,6 @@ e2e/dist/
 
 # Local Just/Docker sandbox experiments (see `just sandbox-for-testing`)
 sandbox-just-test/
+
+# Local Redis snapshot (redis-server started from the repo root)
+dump.rdb
