@@ -95,6 +95,31 @@ export function showApiKeyPrompt() {
     prompt.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+const SETUP_PROVIDERS: Record<string, { title: string; href: string; host: string }> = {
+    gemini: { title: 'Gemini API key', href: 'https://aistudio.google.com/api-keys', host: 'aistudio.google.com' },
+    openai: { title: 'OpenAI API key', href: 'https://platform.openai.com/api-keys', host: 'platform.openai.com' },
+    anthropic: { title: 'Anthropic API key', href: 'https://console.anthropic.com/settings/keys', host: 'console.anthropic.com' },
+    openrouter: { title: 'OpenRouter API key', href: 'https://openrouter.ai/settings/keys', host: 'openrouter.ai' },
+};
+
+function selectedSetupProvider(): string {
+    const sel = document.getElementById('setup-provider-select') as HTMLSelectElement | null;
+    const value = sel?.value || 'gemini';
+    return SETUP_PROVIDERS[value] ? value : 'gemini';
+}
+
+function applySetupProviderCopy(): void {
+    const meta = SETUP_PROVIDERS[selectedSetupProvider()];
+    if (!meta) return;
+    const title = document.getElementById('setup-key-title');
+    const link = document.getElementById('setup-key-link') as HTMLAnchorElement | null;
+    if (title) title.textContent = meta.title;
+    if (link) {
+        link.href = meta.href;
+        link.textContent = meta.host;
+    }
+}
+
 export function setupInlineApiKey() {
     const saveBtn   = document.getElementById('setup-save-key-btn');
     const input = document.getElementById('setup-api-key-input') as HTMLInputElement | null;
@@ -106,8 +131,14 @@ export function setupInlineApiKey() {
 
     if (!saveBtn || !input) return;
 
+    document.getElementById('setup-provider-select')?.addEventListener('change', applySetupProviderCopy);
+    applySetupProviderCopy();
+    // Lets users who already saved a key switch provider before Settings unlocks
+    document.getElementById('change-provider-btn')?.addEventListener('click', showApiKeyPrompt);
+
     saveBtn.addEventListener('click', async function () {
         const key = input.value.trim();
+        const provider = selectedSetupProvider();
 
         if (!key) {
             if (errorEl) { errorEl.textContent = 'Please paste your API key.'; errorEl.style.display = 'block'; }
@@ -128,7 +159,7 @@ export function setupInlineApiKey() {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ api_key: key, provider: 'gemini' })
+                body: JSON.stringify({ api_key: key, provider })
             });
 
             const data = await res.json().catch(() => ({}));
@@ -140,7 +171,7 @@ export function setupInlineApiKey() {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ preferred_provider: 'gemini' })
+                body: JSON.stringify({ preferred_provider: provider })
             });
 
             // Mark key as available so next interaction goes straight to upload

@@ -1617,7 +1617,7 @@ class ApiKeyRequest(BaseModel):
     )
     provider: Optional[str] = Field(
         None,
-        description="LLM provider: gemini | openai | anthropic (defaults to gemini)",
+        description="LLM provider: gemini | openai | anthropic | openrouter (defaults to gemini)",
     )
 
 
@@ -1683,6 +1683,11 @@ def _mask_key_preview(decrypted_key: str) -> str:
     return "****"
 
 
+_OPENROUTER_KEY_WRONG_PROVIDER: str = (
+    "This looks like an OpenRouter key (sk-or-). Choose OpenRouter as your provider instead."
+)
+
+
 def _normalize_key_provider(raw: Optional[str]) -> str:
     """Normalize API-key provider; default gemini for backward compatibility."""
     from utils.llm.constants import VALID_LLM_PROVIDERS
@@ -1731,7 +1736,7 @@ async def get_api_key_status(
         use_vertex_ai = bool(getattr(settings, "use_vertex_ai", False))
 
         providers_status: Dict[str, ProviderKeyStatus] = {}
-        for pname in ("gemini", "openai", "anthropic", "ollama"):
+        for pname in ("gemini", "openai", "anthropic", "openrouter", "ollama"):
             if pname == "ollama":
                 providers_status[pname] = ProviderKeyStatus(has_key=True, key_preview=None)
                 continue
@@ -1790,6 +1795,10 @@ async def set_api_key(
         from utils.anthropic_api_key_format import validate_anthropic_api_key
         from utils.llm.availability import encrypted_key_attr_for_provider
         from utils.openai_api_key_format import validate_openai_api_key
+        from utils.openrouter_api_key_format import (
+            looks_like_openrouter_api_key,
+            validate_openrouter_api_key,
+        )
 
         user_id = get_user_id_from_token(current_user)
         provider = _normalize_key_provider(request.provider)
@@ -1801,6 +1810,8 @@ async def set_api_key(
                     "Invalid API key format. Please check your Gemini API key."
                 )
         elif provider == "openai":
+            if looks_like_openrouter_api_key(key):
+                raise validation_error(_OPENROUTER_KEY_WRONG_PROVIDER)
             if not validate_openai_api_key(key):
                 raise validation_error(
                     "Invalid API key format. OpenAI keys usually start with sk-."
@@ -1809,6 +1820,11 @@ async def set_api_key(
             if not validate_anthropic_api_key(key):
                 raise validation_error(
                     "Invalid API key format. Anthropic keys usually start with sk-ant-."
+                )
+        elif provider == "openrouter":
+            if not validate_openrouter_api_key(key):
+                raise validation_error(
+                    "Invalid API key format. OpenRouter keys usually start with sk-or-."
                 )
 
         encrypted_key = encrypt_api_key(key)
@@ -1925,6 +1941,10 @@ async def validate_api_key_endpoint(
         from utils.anthropic_api_key_format import validate_anthropic_api_key
         from utils.llm.constants import HTTP_CONNECT_TIMEOUT
         from utils.openai_api_key_format import validate_openai_api_key
+        from utils.openrouter_api_key_format import (
+            looks_like_openrouter_api_key,
+            validate_openrouter_api_key,
+        )
 
         user_id = get_user_id_from_token(current_user)
 
@@ -1971,6 +1991,8 @@ async def validate_api_key_endpoint(
             }
 
         if provider == "openai":
+            if looks_like_openrouter_api_key(key):
+                raise validation_error(_OPENROUTER_KEY_WRONG_PROVIDER)
             if not validate_openai_api_key(key):
                 raise validation_error("Invalid API key format")
             try:
@@ -2026,6 +2048,38 @@ async def validate_api_key_endpoint(
                 )
                 raise validation_error(
                     "API key validation failed. Please check your Anthropic key."
+                )
+            return {
+                "valid": True,
+                "message": "API key is valid",
+                "provider": provider,
+            }
+
+        if provider == "openrouter":
+            if not validate_openrouter_api_key(key):
+                raise validation_error("Invalid API key format")
+            from utils.llm.providers.openrouter import OPENROUTER_API_BASE
+
+            try:
+                timeout = httpx.Timeout(15.0, connect=HTTP_CONNECT_TIMEOUT)
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    resp = await client.get(
+                        f"{OPENROUTER_API_BASE}/key",
+                        headers={"Authorization": f"Bearer {key}"},
+                    )
+                if resp.status_code >= 400:
+                    raise validation_error(
+                        "API key validation failed. Please check your OpenRouter key."
+                    )
+            except HTTPException:
+                raise
+            except Exception as api_error:
+                logger.warning(
+                    "OpenRouter key validation failed: %s",
+                    sanitize_log_value(str(api_error)),
+                )
+                raise validation_error(
+                    "API key validation failed. Please check your OpenRouter key."
                 )
             return {
                 "valid": True,
@@ -2271,7 +2325,7 @@ class ApplicationPreferencesRequest(BaseModel):
     )
     preferred_provider: Optional[str] = Field(
         None,
-        description="LLM provider: gemini | openai | anthropic | ollama. Required before AI features work.",
+        description="LLM provider: gemini | openai | anthropic | openrouter | ollama. Required before AI features work.",
     )
 
 

@@ -137,7 +137,7 @@ def emit_workflow_error(ctx: CliContext, exc: ApiClientError) -> None:
     if exc.error_code == "CFG_6001":
         hint = (
             "Configure AI: rolemule profile api-key set --provider gemini "
-            "(or openai/anthropic), or set preferred_provider=ollama / USE_VERTEX_AI"
+            "(or openai/anthropic/openrouter), or set preferred_provider=ollama / USE_VERTEX_AI"
         )
         if ctx.output_format == "json":
             payload = {

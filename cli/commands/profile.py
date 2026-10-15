@@ -323,13 +323,16 @@ def api_key_status(ctx: typer.Context) -> None:
     emit(cli_ctx, data)
 
 
+_KEY_PROVIDERS = ("gemini", "openai", "anthropic", "openrouter")
+
+
 @api_key_app.command("set")
 def api_key_set(
     ctx: typer.Context,
     provider: str = typer.Option(
         "gemini",
         "--provider",
-        help="Provider: gemini | openai | anthropic",
+        help="Provider: gemini | openai | anthropic | openrouter",
     ),
     api_key: Optional[str] = typer.Option(
         None, "--api-key", help="API key (prefer getpass prompt)"
@@ -338,9 +341,9 @@ def api_key_set(
     """Save a BYOK API key for a provider (also sets preferred_provider)."""
     cli_ctx: CliContext = ctx.obj
     provider_norm = provider.strip().lower()
-    if provider_norm not in ("gemini", "openai", "anthropic"):
+    if provider_norm not in _KEY_PROVIDERS:
         typer.secho(
-            "Provider must be gemini, openai, or anthropic (Ollama needs no key).",
+            "Provider must be gemini, openai, anthropic, or openrouter (Ollama needs no key).",
             fg="red",
             err=True,
         )
@@ -366,7 +369,7 @@ def api_key_delete(
     provider: str = typer.Option(
         "gemini",
         "--provider",
-        help="Provider whose key to delete: gemini | openai | anthropic",
+        help="Provider whose key to delete: gemini | openai | anthropic | openrouter",
     ),
     confirm: bool = typer.Option(False, "--confirm", help="Confirm deletion"),
 ) -> None:
@@ -382,7 +385,7 @@ def api_key_validate(
     provider: str = typer.Option(
         "gemini",
         "--provider",
-        help="Provider: gemini | openai | anthropic",
+        help="Provider: gemini | openai | anthropic | openrouter",
     ),
     api_key: Optional[str] = typer.Option(
         None, "--api-key", help="Key to validate (prefer getpass prompt)"
@@ -391,9 +394,9 @@ def api_key_validate(
     """Validate an API key without saving it."""
     cli_ctx: CliContext = ctx.obj
     provider_norm = provider.strip().lower()
-    if provider_norm not in ("gemini", "openai", "anthropic"):
+    if provider_norm not in _KEY_PROVIDERS:
         typer.secho(
-            "Provider must be gemini, openai, or anthropic.",
+            "Provider must be gemini, openai, anthropic, or openrouter.",
             fg="red",
             err=True,
         )

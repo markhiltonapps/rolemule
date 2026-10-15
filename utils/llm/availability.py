@@ -57,6 +57,7 @@ def encrypted_key_attr_for_provider(provider: str) -> Optional[str]:
         "gemini": "gemini_api_key_encrypted",
         "openai": "openai_api_key_encrypted",
         "anthropic": "anthropic_api_key_encrypted",
+        "openrouter": "openrouter_api_key_encrypted",
     }.get(provider)
 
 
@@ -267,7 +268,7 @@ def llm_credentials_available(
 
 def provider_requires_api_key(provider: str) -> bool:
     """Return True when the provider needs a user BYOK key."""
-    return provider in ("gemini", "openai", "anthropic")
+    return provider in ("gemini", "openai", "anthropic", "openrouter")
 
 
 def is_valid_provider_name(name: Optional[str]) -> bool:

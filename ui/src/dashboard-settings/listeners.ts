@@ -17,6 +17,7 @@ import {
 } from './password';
 import {
   loadWorkflowPreferences,
+  saveCustomModel,
   scheduleModelSave,
   schedulePreferencesSave,
   updateSliderFill,
@@ -35,6 +36,9 @@ export function attachEventListeners(): void {
   });
   el('apiKeyForm')?.addEventListener('submit', (e) => {
     void handleApiKeySave(e);
+  });
+  el('customModelForm')?.addEventListener('submit', (e) => {
+    void saveCustomModel(e);
   });
 
   const resumeInput = el('resumeUploadInput');

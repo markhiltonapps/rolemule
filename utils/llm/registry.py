@@ -12,6 +12,7 @@ from utils.llm.providers.anthropic import AnthropicProvider
 from utils.llm.providers.gemini import GeminiProvider
 from utils.llm.providers.ollama import OllamaProvider
 from utils.llm.providers.openai import OpenAIProvider
+from utils.llm.providers.openrouter import OpenRouterProvider
 from utils.logging_config import sanitize_log_value
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ _PROVIDER_FACTORIES: Dict[str, Callable[[], LLMProvider]] = {
     "gemini": GeminiProvider,
     "openai": OpenAIProvider,
     "anthropic": AnthropicProvider,
+    "openrouter": OpenRouterProvider,
     "ollama": OllamaProvider,
 }
 

@@ -17,7 +17,7 @@ class LLMError(Exception):
         message: Human-readable description of the error.
         status_code: HTTP status from the upstream API, if available.
         original_error: Underlying exception, if any.
-        provider: Provider name when known (gemini, openai, anthropic, ollama).
+        provider: Provider name when known (gemini, openai, anthropic, openrouter, ollama).
     """
 
     def __init__(
@@ -66,6 +66,11 @@ _OPENAI_QUOTA_USER_MESSAGE: str = (
 _ANTHROPIC_QUOTA_USER_MESSAGE: str = (
     "The Anthropic quota or rate limit for the configured API key was reached. "
     "Try again later, check your Anthropic plan and usage, or update the key."
+)
+
+_OPENROUTER_QUOTA_USER_MESSAGE: str = (
+    "The OpenRouter credit balance or rate limit for the configured API key was reached. "
+    "Add credits or check usage at openrouter.ai, try again later, or update the key."
 )
 
 def _text_indicates_gemini_quota_exhausted(text: str) -> bool:
@@ -118,6 +123,18 @@ def _text_indicates_anthropic_quota(text: str) -> bool:
     return False
 
 
+def _text_indicates_openrouter_quota(text: str) -> bool:
+    """Return True if text looks like an OpenRouter credits / rate-limit error."""
+    if not text:
+        return False
+    lower = text.lower()
+    if "openrouter" not in lower:
+        return False
+    if "(402)" in text or "insufficient credits" in lower:
+        return True
+    return "(429)" in text or "rate limit" in lower or "rate_limit" in lower
+
+
 def _exception_chain_text(exc: BaseException) -> str:
     """Join str() of exc, LLMError.original_error, and __cause__/__context__."""
     parts: List[str] = []
@@ -145,7 +162,10 @@ def user_facing_message_from_llm_exception(exc: BaseException) -> str:
     returns str(exc).
     """
     combined = _exception_chain_text(exc)
-    # Provider-specific markers first (avoid Gemini false positives on shared "429"+"quota")
+    # Provider-specific markers first (avoid Gemini false positives on shared "429"+"quota").
+    # OpenRouter before OpenAI: its errors can also mention "rate limit".
+    if _text_indicates_openrouter_quota(combined):
+        return _OPENROUTER_QUOTA_USER_MESSAGE
     if _text_indicates_openai_quota(combined):
         return _OPENAI_QUOTA_USER_MESSAGE
     if _text_indicates_anthropic_quota(combined):
@@ -162,4 +182,5 @@ def is_llm_quota_or_rate_limit_exception(exc: BaseException) -> bool:
         _text_indicates_gemini_quota_exhausted(combined)
         or _text_indicates_openai_quota(combined)
         or _text_indicates_anthropic_quota(combined)
+        or _text_indicates_openrouter_quota(combined)
     )

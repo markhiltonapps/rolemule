@@ -4,12 +4,14 @@ IDs verified against provider docs (as of 2026-07):
 - Gemini: https://ai.google.dev/gemini-api/docs/models
 - OpenAI: https://developers.openai.com/api/docs/models
 - Anthropic: https://platform.claude.com/docs/en/about-claude/models/overview
+- OpenRouter: https://openrouter.ai/models (curated list; any vendor/model slug accepted)
 - Ollama: https://ollama.com/library (pull tags; user must `ollama pull` locally)
 """
 
 from __future__ import annotations
 
-from typing import Dict, FrozenSet, List, Optional
+import re
+from typing import Dict, Final, FrozenSet, List, Optional
 
 from utils.llm.constants import VALID_LLM_PROVIDERS
 
@@ -46,6 +48,27 @@ VALID_ANTHROPIC_MODELS: FrozenSet[str] = frozenset(
     }
 )
 
+# OpenRouter — curated vendor/model slugs shown in Settings. Any other
+# well-formed slug (see OPENROUTER_MODEL_SLUG_RE) is also accepted so users
+# can type a model id copied from openrouter.ai/models.
+VALID_OPENROUTER_MODELS: FrozenSet[str] = frozenset(
+    {
+        "google/gemini-2.5-flash",
+        "openrouter/auto",
+        "anthropic/claude-sonnet-4.5",
+        "openai/gpt-5",
+        "openai/gpt-5-mini",
+        "google/gemini-2.5-pro",
+        "meta-llama/llama-3.3-70b-instruct",
+    }
+)
+
+# vendor/model[:variant] — must fit user_workflow_preferences.preferred_model (String(64))
+OPENROUTER_MODEL_SLUG_RE: Final[re.Pattern[str]] = re.compile(
+    r"^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._:-]*$"
+)
+OPENROUTER_MODEL_MAX_LEN: Final[int] = 64
+
 # Ollama — local library pull tags only (no :cloud). User must `ollama pull`.
 VALID_OLLAMA_MODELS: FrozenSet[str] = frozenset(
     {
@@ -62,6 +85,7 @@ _MODELS_BY_PROVIDER: Dict[str, FrozenSet[str]] = {
     "gemini": VALID_GEMINI_MODELS,
     "openai": VALID_OPENAI_MODELS,
     "anthropic": VALID_ANTHROPIC_MODELS,
+    "openrouter": VALID_OPENROUTER_MODELS,
     "ollama": VALID_OLLAMA_MODELS,
 }
 
@@ -87,6 +111,15 @@ _MODEL_ORDER: Dict[str, List[str]] = {
         "claude-haiku-4-5",
         "claude-fable-5",
         "claude-sonnet-4-6",
+    ],
+    "openrouter": [
+        "google/gemini-2.5-flash",
+        "openrouter/auto",
+        "anthropic/claude-sonnet-4.5",
+        "openai/gpt-5",
+        "openai/gpt-5-mini",
+        "google/gemini-2.5-pro",
+        "meta-llama/llama-3.3-70b-instruct",
     ],
     "ollama": [
         "qwen3.6",
@@ -115,6 +148,13 @@ MODEL_LABELS: Dict[str, str] = {
     "claude-haiku-4-5": "Claude Haiku 4.5 — fastest near-frontier",
     "claude-fable-5": "Claude Fable 5 — highest capability agents",
     "claude-sonnet-4-6": "Claude Sonnet 4.6 — previous Sonnet generation",
+    "google/gemini-2.5-flash": "Gemini 2.5 Flash via OpenRouter — fast & low cost (recommended)",
+    "openrouter/auto": "Auto Router — OpenRouter picks a model per request",
+    "anthropic/claude-sonnet-4.5": "Claude Sonnet 4.5 via OpenRouter",
+    "openai/gpt-5": "GPT-5 via OpenRouter",
+    "openai/gpt-5-mini": "GPT-5 mini via OpenRouter — cheaper",
+    "google/gemini-2.5-pro": "Gemini 2.5 Pro via OpenRouter — deep reasoning",
+    "meta-llama/llama-3.3-70b-instruct": "Llama 3.3 70B via OpenRouter — open weights",
     "qwen3.6": "Qwen 3.6 — strong local general & tools (recommended)",
     "gemma4": "Gemma 4 — newest Google open family",
     "glm-4.7-flash": "GLM-4.7 Flash — efficient 30B-class MoE",
@@ -167,7 +207,20 @@ def is_valid_model_for_provider(provider: str, model: Optional[str]) -> bool:
     """
     if model is None or (isinstance(model, str) and not model.strip()):
         return True
-    return model.strip() in valid_models_for_provider(provider)
+    candidate = model.strip()
+    if candidate in valid_models_for_provider(provider):
+        return True
+    if provider == "openrouter":
+        return is_valid_openrouter_model_slug(candidate)
+    return False
+
+
+def is_valid_openrouter_model_slug(model: str) -> bool:
+    """Return True for a well-formed OpenRouter ``vendor/model`` slug."""
+    return (
+        0 < len(model) <= OPENROUTER_MODEL_MAX_LEN
+        and OPENROUTER_MODEL_SLUG_RE.match(model) is not None
+    )
 
 
 def default_model_for_provider(provider: str, settings: object = None) -> str:
@@ -189,6 +242,7 @@ def default_model_for_provider(provider: str, settings: object = None) -> str:
         "gemini": getattr(settings, "gemini_model", "gemini-3.5-flash"),
         "openai": getattr(settings, "openai_model", "gpt-5.6-luna"),
         "anthropic": getattr(settings, "anthropic_model", "claude-sonnet-5"),
+        "openrouter": getattr(settings, "openrouter_model", "google/gemini-2.5-flash"),
         "ollama": getattr(settings, "ollama_model", "qwen3.6"),
     }
     return str(mapping.get(provider, mapping["gemini"]))

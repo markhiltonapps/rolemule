@@ -32,7 +32,27 @@ const MODEL_LABELS: Record<string, string> = {
   'granite4.1': 'Granite 4.1 — IBM enterprise / RAG / tools',
   nemotron3: 'Nemotron 3 — NVIDIA multimodal (heavy)',
   phi4: 'Phi-4 — compact high quality (light)',
+  'google/gemini-2.5-flash': 'Gemini 2.5 Flash via OpenRouter — fast & low cost (recommended)',
+  'openrouter/auto': 'Auto Router — OpenRouter picks a model per request',
+  'anthropic/claude-sonnet-4.5': 'Claude Sonnet 4.5 via OpenRouter',
+  'openai/gpt-5': 'GPT-5 via OpenRouter',
+  'openai/gpt-5-mini': 'GPT-5 mini via OpenRouter — cheaper',
+  'google/gemini-2.5-pro': 'Gemini 2.5 Pro via OpenRouter — deep reasoning',
+  'meta-llama/llama-3.3-70b-instruct': 'Llama 3.3 70B via OpenRouter — open weights',
 };
+
+/** OpenRouter vendor/model slug — keep in sync with utils/llm/models.py OPENROUTER_MODEL_SLUG_RE */
+const OPENROUTER_MODEL_SLUG_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._:-]*$/;
+const OPENROUTER_MODEL_MAX_LEN = 64;
+
+/** Add (or reuse) a select option for a model id that is not in the curated list. */
+function ensureCustomModelOption(sel: HTMLSelectElement, model: string): void {
+  if (Array.from(sel.options).some((opt) => opt.value === model)) return;
+  const opt = document.createElement('option');
+  opt.value = model;
+  opt.textContent = `Custom: ${model}`;
+  sel.appendChild(opt);
+}
 
 function showPrefsSaved(): void {
   const indicator = el('prefsSavedIndicator');
@@ -126,7 +146,9 @@ export async function loadWorkflowPreferences(): Promise<void> {
   }
 }
 
-export async function loadModelPreference(): Promise<void> {
+export async function loadModelPreference(
+  opts: { allowCustom?: boolean } = {},
+): Promise<void> {
   try {
     const res = await fetch(`${getApiBase()}/profile/preferences`, {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
@@ -137,6 +159,8 @@ export async function loadModelPreference(): Promise<void> {
     if (!sel || sel.options.length === 0) return;
 
     const saved = data.preferred_model || '';
+    // OpenRouter accepts any model slug — keep a typed-in model selectable
+    if (saved && opts.allowCustom) ensureCustomModelOption(sel, saved);
     const hasSaved = Boolean(
       saved && Array.from(sel.options).some((opt) => opt.value === saved),
     );
@@ -201,6 +225,50 @@ export async function saveModelPreference(
     }
   } catch (err) {
     console.error('Error saving model preference:', err);
+  }
+}
+
+export async function saveCustomModel(event: Event): Promise<void> {
+  event.preventDefault();
+  const input = inputEl('customModelInput');
+  const sel = selectEl('preferredModelSelect');
+  const model = input?.value.trim() ?? '';
+  if (!input || !sel) return;
+  if (!model) {
+    notify('Enter a model ID, e.g. anthropic/claude-sonnet-4.5.', 'warning');
+    return;
+  }
+  if (model.length > OPENROUTER_MODEL_MAX_LEN || !OPENROUTER_MODEL_SLUG_RE.test(model)) {
+    notify('Model IDs look like vendor/model-name — copy one from openrouter.ai/models.', 'warning');
+    return;
+  }
+  try {
+    const res = await fetch(`${getApiBase()}/profile/preferences`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ preferred_model: model }),
+    });
+    if (!res.ok) {
+      const errData = (await res.json()) as { message?: string; detail?: string };
+      throw new Error(errData.message || errData.detail || 'Failed to save model');
+    }
+    ensureCustomModelOption(sel, model);
+    sel.value = model;
+    input.value = '';
+    const indicator = el('modelSavedIndicator');
+    if (indicator) {
+      indicator.style.opacity = '1';
+      window.setTimeout(() => {
+        indicator.style.opacity = '0';
+      }, 2000);
+    }
+  } catch (err) {
+    const e = err as Error;
+    console.error('Error saving custom model:', e);
+    notify(e.message || 'Error saving model.', 'danger');
   }
 }
 

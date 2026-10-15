@@ -197,7 +197,7 @@
                     <li><strong>Account Information:</strong> Email address, name, and password when you create an account</li>
                     <li><strong>Profile Data:</strong> Professional information including work experience, education, skills, and career preferences — entered manually or extracted from a resume you upload</li>
                     <li><strong>Job Application Data:</strong> Job postings and job descriptions you submit for analysis</li>
-                    <li><strong>API Keys:</strong> If you use Bring Your Own Key (BYOK), encrypted API keys for the providers you configure (Gemini, OpenAI, and/or Anthropic) are stored in the local database. Ollama uses no API key.</li>
+                    <li><strong>API Keys:</strong> If you use Bring Your Own Key (BYOK), encrypted API keys for the providers you configure (Gemini, OpenAI, Anthropic, and/or OpenRouter) are stored in the local database. Ollama uses no API key.</li>
                 </ul>
 
                 <h3>1.2 Log Data</h3>
@@ -221,7 +221,7 @@
                 </ul>
 
                 <div class="highlight-box">
-                    <p><strong>Your data never leaves this instance</strong> except when job descriptions and profile data are sent to the AI provider you (or the instance operator) configured — Gemini, OpenAI, Anthropic, or a local Ollama server (see Section 4). No data is sent to the project authors.</p>
+                    <p><strong>Your data never leaves this instance</strong> except when job descriptions and profile data are sent to the AI provider you (or the instance operator) configured — Gemini, OpenAI, Anthropic, OpenRouter, or a local Ollama server (see Section 4). No data is sent to the project authors.</p>
                 </div>
 
                 <h2 id="data-storage">3. Data Storage and Security</h2>
@@ -241,6 +241,7 @@
                             <li><strong>Google Gemini</strong> — governed by <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google's Privacy Policy</a></li>
                             <li><strong>OpenAI</strong> — governed by <a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener noreferrer">OpenAI's Privacy Policy</a></li>
                             <li><strong>Anthropic</strong> — governed by <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer">Anthropic's Privacy Policy</a></li>
+                            <li><strong>OpenRouter</strong> — governed by <a href="https://openrouter.ai/privacy" target="_blank" rel="noopener noreferrer">OpenRouter's Privacy Policy</a>; OpenRouter forwards requests to the model vendor you select, whose policy also applies</li>
                             <li><strong>Ollama (local)</strong> — requests stay on the machine or network where Ollama is running; no cloud API key is used</li>
                         </ul>
                         The instance may use an operator-managed key (for example Gemini / Vertex AI) and/or your own encrypted BYOK keys.

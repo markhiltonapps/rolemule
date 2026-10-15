@@ -63,11 +63,11 @@ class Settings(BaseSettings):
                     "Generate with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"",
     )
 
-    # LLM provider selection (gemini | openai | anthropic | ollama)
+    # LLM provider selection (gemini | openai | anthropic | openrouter | ollama)
     # Default remains Gemini for existing deployments. Other providers use server env keys.
     llm_provider: str = Field(
         default="gemini",
-        description="Active LLM provider: gemini, openai, anthropic, or ollama",
+        description="Active LLM provider: gemini, openai, anthropic, openrouter, or ollama",
     )
 
     # Gemini Configuration
@@ -111,6 +111,16 @@ class Settings(BaseSettings):
     anthropic_model: str = Field(
         default="claude-sonnet-5",
         description="Default Anthropic Messages model",
+    )
+
+    # OpenRouter (server key; optional — used when llm_provider=openrouter)
+    openrouter_api_key: Optional[str] = Field(
+        default=None,
+        description="OpenRouter API key for server-side OpenRouter provider",
+    )
+    openrouter_model: str = Field(
+        default="google/gemini-2.5-flash",
+        description="Default OpenRouter model slug (vendor/model)",
     )
 
     # Ollama (local / self-hosted — used when llm_provider=ollama)

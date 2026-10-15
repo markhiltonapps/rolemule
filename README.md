@@ -37,7 +37,7 @@ Paste a job description, upload a PDF / TXT / DOCX, or pull the posting from any
 
 Also includes a dashboard to track every application. And tools for everything around it: interview prep, timed mock sessions, hiring outreach drafts, salary negotiation, job comparison, follow-ups, thank you notes, and references.
 
-Runs on your machine. No subscriptions — each user picks Gemini, OpenAI, Anthropic, or local Ollama in **Settings → AI Setup** and brings their own key (Ollama needs none).
+Runs on your machine. No subscriptions — each user picks Gemini, OpenAI, Anthropic, OpenRouter, or local Ollama in **Settings → AI Setup** and brings their own key (Ollama needs none).
 
 *Here's what a completed application looks like:*
 
@@ -223,7 +223,7 @@ INFO:     Application startup complete.
 ```
 
 Open **http://localhost:8000** in your browser and create your account.
-Complete profile setup (basic info, work experience, education, skills, career preferences). Add your AI provider in **Settings → AI Setup** (Gemini / OpenAI / Anthropic / Ollama) before starting an analysis — cloud providers need your own API key; Ollama needs none.
+Complete profile setup (basic info, work experience, education, skills, career preferences). Add your AI provider in **Settings → AI Setup** (Gemini / OpenAI / Anthropic / OpenRouter / Ollama) before starting an analysis — cloud providers need your own API key; Ollama needs none.
 
 ---
 
@@ -271,11 +271,11 @@ Full command reference: **[docs/cli-reference.md](docs/cli-reference.md)** (shel
 
 ## AI Provider / API Key
 
-Each user **must** pick an AI provider in **Settings → AI Setup** (`gemini`, `openai`, `anthropic`, or `ollama`) and add a BYOK API key for cloud providers. Ollama needs no key. Model is optional (system default or pick from the provider list).
+Each user **must** pick an AI provider in **Settings → AI Setup** (`gemini`, `openai`, `anthropic`, `openrouter`, or `ollama`) and add a BYOK API key for cloud providers. Ollama needs no key. Model is optional (system default or pick from the provider list).
 
 1. Open **Settings → AI Setup**
 2. Select a provider
-3. Paste your API key (Gemini / OpenAI / Anthropic) — or choose Ollama for local inference
+3. Paste your API key (Gemini / OpenAI / Anthropic / OpenRouter) — or choose Ollama for local inference
 4. Optionally pick a preferred model
 
 **Vertex AI (self-hosted admins):** set `USE_VERTEX_AI=true` so users do not need a personal key (Gemini path).
@@ -416,13 +416,15 @@ make build-frontend    # rebuilds dist/ and updates manifest.json
 | `ENCRYPTION_KEY` | Auto-generated | Encrypts stored API keys |
 | `DATABASE_URL` | Set automatically | PostgreSQL connection (user/db name stays `applypilot`) |
 | `REDIS_URL` | Set automatically | Redis connection |
-| `LLM_PROVIDER` | `gemini` | Health/admin fallback provider only (`gemini` \| `openai` \| `anthropic` \| `ollama`) — users pick via **Settings → AI Setup** |
+| `LLM_PROVIDER` | `gemini` | Health/admin fallback provider only (`gemini` \| `openai` \| `anthropic` \| `openrouter` \| `ollama`) — users pick via **Settings → AI Setup** |
 | `GEMINI_API_KEY` | _(empty)_ | Server Gemini key for health/admin; users add BYOK in Settings |
 | `GEMINI_MODEL` | `gemini-3.5-flash` | Default Gemini model (overridable per user when BYOK) |
 | `OPENAI_API_KEY` | _(empty)_ | Server OpenAI key for health/admin; users add BYOK in Settings |
 | `OPENAI_MODEL` | `gpt-5.6-luna` | Default OpenAI model |
 | `ANTHROPIC_API_KEY` | _(empty)_ | Server Anthropic key for health/admin; users add BYOK in Settings |
 | `ANTHROPIC_MODEL` | `claude-sonnet-5` | Default Anthropic model |
+| `OPENROUTER_API_KEY` | _(empty)_ | Server OpenRouter key for health/admin; users add BYOK in Settings |
+| `OPENROUTER_MODEL` | `google/gemini-2.5-flash` | Default OpenRouter model slug |
 | `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Ollama host when user selects Ollama |
 | `OLLAMA_MODEL` | `qwen3.6` | Default Ollama model |
 | `BASE_URL` | `http://localhost:8000` | Used in password-reset and verification email links |

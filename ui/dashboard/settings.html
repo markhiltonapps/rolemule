@@ -944,7 +944,7 @@
                                     <i class="fas fa-check-circle"></i> Saved
                                 </div>
                             </div>
-                            <div class="account-subtitle">Choose a provider. Cloud providers need an API key; Ollama does not.</div>
+                            <div class="account-subtitle">Choose a provider. Cloud providers (including OpenRouter) need an API key; Ollama does not.</div>
                         </div>
                     </div>
                     <div class="ai-setup-card-controls">
@@ -953,6 +953,7 @@
                             <option value="gemini">Google Gemini</option>
                             <option value="openai">OpenAI</option>
                             <option value="anthropic">Anthropic</option>
+                            <option value="openrouter">OpenRouter</option>
                             <option value="ollama">Ollama (local)</option>
                         </select>
                     </div>
@@ -1049,6 +1050,20 @@
                         <select class="pref-select" id="preferredModelSelect" aria-label="Preferred AI model">
                             <option value="">System default</option>
                         </select>
+                        <!-- OpenRouter only — any model id from openrouter.ai/models -->
+                        <form id="customModelForm" class="mt-2 is-hidden">
+                            <label for="customModelInput" class="account-subtitle">
+                                Or use any model from
+                                <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer">openrouter.ai/models</a>
+                                (copy its ID, e.g. <code>anthropic/claude-sonnet-4.5</code>)
+                            </label>
+                            <div class="input-group mt-1">
+                                <input type="text" class="form-control" id="customModelInput"
+                                       placeholder="vendor/model-name" maxlength="64"
+                                       autocomplete="off" spellcheck="false">
+                                <button type="submit" class="btn btn-outline-primary">Use model</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 

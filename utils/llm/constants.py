@@ -6,7 +6,7 @@ DEFAULT_MAX_TOKENS: int = 16000
 
 # Timeout and connection constants
 DEFAULT_TIMEOUT: int = 180  # 3 minutes for larger prompts
-HTTP_CONNECT_TIMEOUT: float = 10.0  # OpenAI / Anthropic / Ollama connect
+HTTP_CONNECT_TIMEOUT: float = 10.0  # OpenAI / Anthropic / OpenRouter / Ollama connect
 
 # Generation parameters (Gemini)
 DEFAULT_TOP_P: float = 0.95
@@ -19,6 +19,6 @@ RETRY_MAX_WAIT: int = 10  # seconds
 
 # Supported provider names (settings allowlist)
 VALID_LLM_PROVIDERS: frozenset[str] = frozenset(
-    {"gemini", "openai", "anthropic", "ollama"}
+    {"gemini", "openai", "anthropic", "openrouter", "ollama"}
 )
 DEFAULT_LLM_PROVIDER: str = "gemini"

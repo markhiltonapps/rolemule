@@ -1,5 +1,5 @@
 ---
-description: Multi-provider LLM client — per-user BYOK (Gemini/OpenAI/Anthropic/Ollama), grounding, CFG_6001
+description: Multi-provider LLM client — per-user BYOK (Gemini/OpenAI/Anthropic/OpenRouter/Ollama), grounding, CFG_6001
 globs: agents/**/*.py,utils/llm_client.py,utils/llm/**/*.py
 alwaysApply: false
 ---
@@ -18,6 +18,7 @@ utils/llm/
     gemini.py        # Google AI Studio + optional Vertex + Google Search grounding (+ stream)
     openai.py        # Chat Completions + Responses web_search when grounded (+ stream)
     anthropic.py     # Messages API + web_search server tool when grounded (+ stream)
+    openrouter.py    # OpenAI-compatible Chat Completions at openrouter.ai; `web` plugin when grounded (+ stream)
     ollama.py        # Local /api/chat (no tools / no key) (+ stream)
 utils/llm_client.py  # backward-compatible re-exports
 utils/llm_context.py # require_user_llm_context() for API gates
@@ -61,7 +62,7 @@ async for chunk in llm.generate_stream(
     ...
 ```
 
-Providers implement `generate_stream` on Gemini / OpenAI / Anthropic / Ollama. On stream failure, callers should fall back to non-stream `generate()`.
+Providers implement `generate_stream` on Gemini / OpenAI / Anthropic / OpenRouter / Ollama. On stream failure, callers should fall back to non-stream `generate()`.
 
 ### Progressive JSON `"speak"` extraction
 
@@ -71,13 +72,14 @@ Tests: `tests/test_utils/test_llm_streaming.py`, `tests/test_utils/test_speak_st
 
 ## Per-user provider + BYOK (product model)
 
-Users **must** choose `preferred_provider` (`gemini` | `openai` | `anthropic` | `ollama`) in Settings → AI Setup. There is **no implicit default** for new accounts.
+Users **must** choose `preferred_provider` (`gemini` | `openai` | `anthropic` | `openrouter` | `ollama`) in Settings → AI Setup. There is **no implicit default** for new accounts.
 
 | Provider | User key required? | Notes |
 |----------|-------------------|--------|
 | `gemini` | Yes (BYOK) | Google Search grounding when enabled |
 | `openai` | Yes (BYOK) | Responses API `web_search` when grounded |
 | `anthropic` | Yes (BYOK) | `web_search_20250305` server tool when grounded |
+| `openrouter` | Yes (BYOK, `sk-or-…`) | `plugins: [{"id": "web"}]` when grounded; model ids are `vendor/model` slugs |
 | `ollama` | No | Uses server `OLLAMA_BASE_URL` / `OLLAMA_MODEL`; no web tools |
 
 **Vertex exception:** when `USE_VERTEX_AI=true`, treat as Gemini without user key (self-hosted admin escape hatch).
@@ -90,7 +92,7 @@ Server `LLM_PROVIDER` / server `GEMINI_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_
 
 ## Admin / health provider
 
-`settings.llm_provider` (`LLM_PROVIDER` env) — allowlist: `gemini` | `openai` | `anthropic` | `ollama`. Default **`gemini`**. Used when `generate()` omits `provider=` (health checks, admin tools).
+`settings.llm_provider` (`LLM_PROVIDER` env) — allowlist: `gemini` | `openai` | `anthropic` | `openrouter` | `ollama`. Default **`gemini`**. Used when `generate()` omits `provider=` (health checks, admin tools).
 
 ## Unified LLM output token cap (16,000)
 
@@ -120,6 +122,7 @@ response = await self.llm_client.generate(
 - Gemini: Google Search grounding tool (existing)
 - OpenAI: Responses API + `tools: [{"type": "web_search"}]`
 - Anthropic: Messages + `web_search_20250305`
+- OpenRouter: Chat Completions + `plugins: [{"id": "web"}]` (billed by OpenRouter per search)
 - Ollama: grounding disabled; agent omits search hint
 
 Flag: `use_google_search_grounding=True` on `generate()` (name kept for compatibility).
@@ -134,7 +137,7 @@ Pass `user_id` and `provider=` so cache keys do not bleed across providers.
 
 ## LLM Call Timeout — Required
 
-Wrap every sync SDK call in `asyncio.wait_for()` (Gemini). OpenAI / Anthropic / Ollama use **httpx AsyncClient** with `Timeout(DEFAULT_TIMEOUT, connect=HTTP_CONNECT_TIMEOUT)`.
+Wrap every sync SDK call in `asyncio.wait_for()` (Gemini). OpenAI / Anthropic / OpenRouter / Ollama use **httpx AsyncClient** with `Timeout(DEFAULT_TIMEOUT, connect=HTTP_CONNECT_TIMEOUT)`.
 
 ## No API key — `CFG_6001`
 
@@ -149,6 +152,7 @@ Single source of truth for Settings dropdowns and `PATCH /preferences` validatio
 | `gemini` | `GEMINI_MODEL` → `gemini-3.5-flash` | `gemini-3.5-flash`, `gemini-3.1-flash-lite`, `gemini-3.1-pro-preview`, `gemini-2.5-flash`, `gemini-2.5-pro` |
 | `openai` | `OPENAI_MODEL` → `gpt-5.6-luna` | `gpt-5.6-luna`, `gpt-5.6-terra`, `gpt-5.6-sol`, `gpt-5.5`, `gpt-5.4-mini` |
 | `anthropic` | `ANTHROPIC_MODEL` → `claude-sonnet-5` | `claude-sonnet-5`, `claude-opus-4-8`, `claude-haiku-4-5`, `claude-fable-5`, `claude-sonnet-4-6` |
+| `openrouter` | `OPENROUTER_MODEL` → `google/gemini-2.5-flash` | curated: `google/gemini-2.5-flash`, `openrouter/auto`, `anthropic/claude-sonnet-4.5`, `openai/gpt-5`, `openai/gpt-5-mini`, `google/gemini-2.5-pro`, `meta-llama/llama-3.3-70b-instruct` — **plus any well-formed `vendor/model[:variant]` slug ≤64 chars** (`OPENROUTER_MODEL_SLUG_RE`; Settings "Use model" field) |
 | `ollama` | `OLLAMA_MODEL` → `qwen3` | `qwen3`, `llama3.3`, `gemma3`, `mistral`, `deepseek-r1`, `phi4`, `gemma4`, `llama3.2` |
 
 `models_payload()` feeds `GET /api/v1/profile/api-key/status` → `models`. Resolver drops a stored `preferred_model` that is invalid for the active provider.

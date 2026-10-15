@@ -39,7 +39,7 @@ export const ALL_STEPS: OnboardingStep[] = [
     content: `
                 <p>AI features need a provider in <strong>Settings → AI Setup</strong>.</p>
                 <ol>
-                    <li>Choose <strong>Gemini</strong>, <strong>OpenAI</strong>, <strong>Anthropic</strong>, or local <strong>Ollama</strong></li>
+                    <li>Choose <strong>Gemini</strong>, <strong>OpenAI</strong>, <strong>Anthropic</strong>, <strong>OpenRouter</strong>, or local <strong>Ollama</strong></li>
                     <li>For cloud providers, create an API key and paste it (Ollama needs no key)</li>
                     <li>Confirm or change the preferred model (recommended is selected by default)</li>
                 </ol>

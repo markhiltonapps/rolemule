@@ -29,6 +29,16 @@ Profile setup adds **work authorization** (radio), **visa sponsorship** (checkbo
 
 ## [Unreleased]
 
+### Added
+
+#### OpenRouter provider (Settings → AI Setup)
+
+Fifth BYOK provider **`openrouter`** — one OpenRouter key (`sk-or-…`) reaches many model vendors. Adapter **`utils/llm/providers/openrouter.py`** (OpenAI-compatible Chat Completions + streaming; `web` plugin for company-research / outreach grounding). Encrypted key column **`users.openrouter_api_key_encrypted`** (migration **`20261014_028`**). Key format check + `/key` validation (**`utils/openrouter_api_key_format.py`**); pasting an OpenRouter key under OpenAI now returns a pointer to the right provider. Model picker shows a curated list plus a **Use model** field that accepts any `vendor/model` slug from openrouter.ai/models. Friendly message for OpenRouter 402 (credits) / 429. CLI: `rolemule profile api-key set --provider openrouter`. Tests: **`tests/test_utils/test_llm_openrouter.py`**, **`tests/test_api/test_profile_openrouter.py`**.
+
+### Fixed
+
+- **Docker on Windows** — `docker-entrypoint.sh` is normalized to LF in the image build and pinned via `.gitattributes`, fixing `exec /app/docker-entrypoint.sh: no such file or directory` on clones with `core.autocrlf=true`.
+
 ### Changed
 
 #### Rebrand — ApplyPilot → RoleMule

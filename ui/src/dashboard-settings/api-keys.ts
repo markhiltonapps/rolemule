@@ -21,6 +21,11 @@ const PROVIDER_KEY_LINKS: Record<string, { label: string; href: string; subtitle
     href: 'https://console.anthropic.com/settings/keys',
     subtitle: 'Add your Anthropic API key (starts with sk-ant-)',
   },
+  openrouter: {
+    label: 'Get API Key',
+    href: 'https://openrouter.ai/settings/keys',
+    subtitle: 'Add your OpenRouter API key (starts with sk-or-)',
+  },
 };
 
 let _lastStatus: ApiKeyStatusResponse | null = null;
@@ -69,11 +74,13 @@ export function updateApiKeyStatusUI(data: ApiKeyStatusResponse): void {
   const userKeyIcon = el('userKeyIcon');
   const modelCard = el('modelSelectorCard');
   const providerSelect = inputEl('preferredProviderSelect') as HTMLSelectElement | null;
+  const customModelForm = el('customModelForm');
 
   _hide(serverNotice);
   _hide(byokNotice);
   _hide(userKeyNotice);
   _hide(ollamaNotice);
+  customModelForm?.classList.add('is-hidden');
 
   const useVertexAI = Boolean(data.use_vertex_ai);
   const preferred = data.preferred_provider || '';
@@ -140,7 +147,9 @@ export function updateApiKeyStatusUI(data: ApiKeyStatusResponse): void {
       modelCard.classList.remove('is-hidden');
       modelCard.style.display = 'block';
       populateModelSelect(data.models?.[preferred] || [], null);
-      void loadModelPreference();
+      const allowCustom = preferred === 'openrouter';
+      customModelForm?.classList.toggle('is-hidden', !allowCustom);
+      void loadModelPreference({ allowCustom });
     } else {
       modelCard.classList.add('is-hidden');
       modelCard.style.display = 'none';
@@ -254,7 +263,7 @@ export async function handleApiKeySave(event: Event): Promise<void> {
   const provider =
     (inputEl('preferredProviderSelect') as HTMLSelectElement | null)?.value || '';
   if (!provider || provider === 'ollama') {
-    showAlert('Select Gemini, OpenAI, or Anthropic before saving a key.', 'warning');
+    showAlert('Select Gemini, OpenAI, Anthropic, or OpenRouter before saving a key.', 'warning');
     return;
   }
   if (!apiKey) {

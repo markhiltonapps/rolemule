@@ -139,6 +139,9 @@ class User(Base):
     anthropic_api_key_encrypted: Mapped[Optional[str]] = mapped_column(
         Text, nullable=True, default=None
     )
+    openrouter_api_key_encrypted: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True, default=None
+    )
 
     # Timestamps
     last_login: Mapped[Optional[datetime]] = mapped_column(
@@ -208,6 +211,7 @@ class User(Base):
             "has_gemini_api_key": self.gemini_api_key_encrypted is not None,
             "has_openai_api_key": self.openai_api_key_encrypted is not None,
             "has_anthropic_api_key": self.anthropic_api_key_encrypted is not None,
+            "has_openrouter_api_key": self.openrouter_api_key_encrypted is not None,
             "has_google_linked": self.google_id is not None,
             "last_login": self.last_login.isoformat() if self.last_login else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
@@ -458,7 +462,7 @@ class UserWorkflowPreferences(Base):
         String(64), nullable=True, default=None
     )
 
-    # Required per-user LLM provider (gemini|openai|anthropic|ollama).
+    # Required per-user LLM provider (gemini|openai|anthropic|openrouter|ollama).
     # NULL means the user has not configured AI yet → CFG_6001.
     preferred_provider: Mapped[Optional[str]] = mapped_column(
         String(32), nullable=True, default=None

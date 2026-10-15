@@ -887,6 +887,20 @@
                 gap: 0.5rem;
             }
             .api-key-input-row.is-hidden { display: none; }
+            .api-key-provider-select {
+                max-width: 260px;
+                padding: 0.45rem 0.75rem;
+                font-size: 0.9rem;
+                color: var(--text-primary);
+                background-color: var(--bg-input, var(--bg-card));
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+            }
+            .api-key-provider-select:focus {
+                border-color: var(--accent-primary);
+                box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+                outline: none;
+            }
             .api-key-input-row .form-control {
                 flex: 1;
                 font-family: var(--font-mono);
@@ -1273,13 +1287,20 @@
                                         <i class="fas fa-key"></i>
                                     </div>
                                     <div>
-                                        <p class="api-key-prompt-title">Gemini API key required</p>
+                                        <p class="api-key-prompt-title" id="setup-key-title">AI provider &amp; API key</p>
                                         <p class="api-key-prompt-subtitle">
                                             Resume parsing is powered by AI —
-                                            get a key at <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">aistudio.google.com</a>
+                                            get a key at <a id="setup-key-link" href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">aistudio.google.com</a>
                                         </p>
                                     </div>
                                 </div>
+
+                                <select class="form-select api-key-provider-select" id="setup-provider-select" aria-label="AI provider">
+                                    <option value="gemini">Google Gemini</option>
+                                    <option value="openai">OpenAI</option>
+                                    <option value="anthropic">Anthropic</option>
+                                    <option value="openrouter">OpenRouter</option>
+                                </select>
 
                                 <div class="api-key-input-row" id="api-key-input-row">
                                     <input
@@ -1287,10 +1308,10 @@
                                         class="form-control"
                                         id="setup-api-key-input"
                                         placeholder="Paste your API key…"
-                                        maxlength="128"
+                                        maxlength="512"
                                         autocomplete="off"
                                         spellcheck="false"
-                                        aria-label="Gemini API key"
+                                        aria-label="API key"
                                     />
                                     <button type="button" class="btn btn-primary" id="setup-save-key-btn">
                                         <span id="setup-save-key-text">Save &amp; Continue</span>
@@ -1309,6 +1330,11 @@
                                 <button type="button" class="btn btn-outline-secondary" id="skip-resume-btn">
                                     <i class="fas fa-pencil-alt me-2"></i>Fill in manually
                                 </button>
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-link btn-sm" id="change-provider-btn">
+                                        <i class="fas fa-key me-1"></i>Change AI provider or key
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

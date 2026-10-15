@@ -151,7 +151,7 @@ Google OAuth users: log in via the browser, then `rolemule auth token set`. For 
 | `profile resume show` | `GET /api/v1/profile/resume` |
 | `profile resume delete --confirm` | `DELETE /api/v1/profile/resume` |
 | `profile api-key status` | `GET /api/v1/profile/api-key/status` |
-| `profile api-key set [--provider gemini\|openai\|anthropic]` | `POST /api/v1/profile/api-key` |
+| `profile api-key set [--provider gemini\|openai\|anthropic\|openrouter]` | `POST /api/v1/profile/api-key` |
 | `profile api-key delete --confirm [--provider …]` | `DELETE /api/v1/profile/api-key?provider=` |
 | `profile api-key validate [--provider …]` | `POST /api/v1/profile/api-key/validate` |
 | `profile workflow-preferences show` | `GET /api/v1/profile/preferences` |

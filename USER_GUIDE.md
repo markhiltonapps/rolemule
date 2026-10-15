@@ -368,7 +368,7 @@ If the loop stops early because of API quota, RoleMule saves the best CV reached
 
 ### Requirements
 
-- A **provider + API key** in **Settings → AI Setup** (Gemini, OpenAI, or Anthropic), or **Ollama** with no key, or Vertex AI if your instance operator enabled it
+- A **provider + API key** in **Settings → AI Setup** (Gemini, OpenAI, Anthropic, or OpenRouter), or **Ollama** with no key, or Vertex AI if your instance operator enabled it
 - A **completed workflow** for that application — if document generation was skipped, finish the workflow from the Cover Letter or Resume tab first
 
 ### Output and actions
@@ -476,15 +476,15 @@ Edit your basic information, work experience, skills, and career preferences.
 Each user picks an AI provider and adds their own API key (bring-your-own-key). Local Ollama needs no key. Vertex AI is only available when the instance operator enables it server-side.
 
 1. Go to **Settings → AI Setup**
-2. Choose a provider: **Google Gemini**, **OpenAI**, **Anthropic**, or **Ollama (local)**
+2. Choose a provider: **Google Gemini**, **OpenAI**, **Anthropic**, **OpenRouter**, or **Ollama (local)**
 3. For cloud providers, open the linked **Get API Key** page, create a key, paste it, and click **Save**
 4. Pick a preferred model (defaults to the recommended model for that provider)
 
 Your keys are encrypted at rest and never logged or exposed. Switching provider clears any previously saved preferred model so you don’t keep a model id from another vendor.
 
-**Model selection** — after a key is saved (or Ollama is selected), the recommended model is selected automatically. Defaults: Gemini `gemini-3.5-flash`, OpenAI `gpt-5.6-luna`, Anthropic `claude-sonnet-5`, Ollama `qwen3.6`. Only change this if you have a specific reason — different models have different speed, cost, and quality trade-offs.
+**Model selection** — after a key is saved (or Ollama is selected), the recommended model is selected automatically. Defaults: Gemini `gemini-3.5-flash`, OpenAI `gpt-5.6-luna`, Anthropic `claude-sonnet-5`, OpenRouter `google/gemini-2.5-flash`, Ollama `qwen3.6`. With OpenRouter you can also type any model ID from [openrouter.ai/models](https://openrouter.ai/models) (e.g. `anthropic/claude-sonnet-4.5`) under the model dropdown and click **Use model**. Only change this if you have a specific reason — different models have different speed, cost, and quality trade-offs.
 
-**Key pages:** [Google AI Studio](https://aistudio.google.com/app/apikey) · [OpenAI API keys](https://platform.openai.com/api-keys) · [Anthropic console](https://console.anthropic.com/settings/keys) · Ollama: `ollama pull <model>` on the server.
+**Key pages:** [Google AI Studio](https://aistudio.google.com/app/apikey) · [OpenAI API keys](https://platform.openai.com/api-keys) · [Anthropic console](https://console.anthropic.com/settings/keys) · [OpenRouter keys](https://openrouter.ai/settings/keys) · Ollama: `ollama pull <model>` on the server.
 
 ### Preferences
 
@@ -572,13 +572,13 @@ A: Five AI agents run across four steps — the last two (Resume Advisor and Cov
 ### API Keys
 
 **Q: Do I need my own API key?**  
-A: Yes for Gemini, OpenAI, and Anthropic — add it under **Settings → AI Setup**. Ollama needs no key. If the operator enabled **Vertex AI** on the server, you don’t need a personal key.
+A: Yes for Gemini, OpenAI, Anthropic, and OpenRouter — add it under **Settings → AI Setup**. Ollama needs no key. If the operator enabled **Vertex AI** on the server, you don’t need a personal key.
 
 **Q: Is my API key secure?**  
 A: Yes. Keys are encrypted at rest using Fernet symmetric encryption and are never logged or returned by the API.
 
 **Q: Where do I get an API key?**  
-A: Gemini — [Google AI Studio](https://aistudio.google.com/app/apikey). OpenAI — [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Anthropic — [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys). Usage is billed to your provider account.
+A: Gemini — [Google AI Studio](https://aistudio.google.com/app/apikey). OpenAI — [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Anthropic — [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys). OpenRouter — [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) (one key for many vendors; add credits first). Usage is billed to your provider account.
 
 ### Technical
 

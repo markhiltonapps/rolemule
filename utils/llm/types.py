@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Literal, Optional, TypedDict
 
-ProviderName = Literal["gemini", "openai", "anthropic", "ollama"]
+ProviderName = Literal["gemini", "openai", "anthropic", "openrouter", "ollama"]
 
 
 class GenerateResult(TypedDict, total=False):
