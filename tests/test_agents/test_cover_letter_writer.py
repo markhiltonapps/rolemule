@@ -209,6 +209,29 @@ class TestCoverLetterProcessing:
         assert "cover_letter" in result
 
 
+    @pytest.mark.asyncio
+    async def test_process_with_null_job_analysis_fields(self, mock_gemini_client):
+        """Analyzer stores unstated fields as None — tone detection must not crash."""
+        agent = CoverLetterWriterAgent(gemini_client=mock_gemini_client)
+
+        state = create_test_workflow_state(
+            user_profile={
+                "full_name": "Test User",
+                "professional_title": "Engineer",
+                "years_experience": 3,
+            },
+            job_analysis={
+                "job_title": None,
+                "company_name": None,
+                "industry": None,
+            },
+        )
+
+        result = await agent.process(state)
+
+        assert "cover_letter" in result
+
+
 # =============================================================================
 # ERROR HANDLING TESTS
 # =============================================================================

@@ -291,9 +291,10 @@ class CoverLetterWriterAgent:
         formatted_company = self._format_company(company_research)
 
         # Determine tone based on industry - check multiple keywords
-        industry = job_analysis.get("industry", "").lower()
-        company_name = job_analysis.get("company_name", "").lower()
-        job_title = job_analysis.get("job_title", "").lower()
+        # Analyzer stores missing fields as None (key present), so .get(k, "") is not enough
+        industry = (job_analysis.get("industry") or "").lower()
+        company_name = (job_analysis.get("company_name") or "").lower()
+        job_title = (job_analysis.get("job_title") or "").lower()
         
         # Combine all context for better tone matching
         context = f"{industry} {company_name} {job_title}"
